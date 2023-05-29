@@ -14,10 +14,16 @@ import java.sql.Date;
 @Getter
 @Setter
 public class GiaoVien extends BaseModel {
-    private long userId;
     private String tenGV;
     private Date ngaySinhGV;
     private Boolean gioiTinhGV;
     private String sdtGV;
     private Boolean trangthai;
+
+    @Column(name = "user_id")
+    private long userId;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private User user;
 }

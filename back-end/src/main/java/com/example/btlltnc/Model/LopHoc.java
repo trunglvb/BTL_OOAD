@@ -5,8 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.sql.Date;
 
 @Entity
@@ -15,14 +14,38 @@ import java.sql.Date;
 @Getter
 @Setter
 public class LopHoc extends BaseModel {
-    private long maKH;
     private String tenLop;
     private Date ngayBD;
     private Date ngayKT;
     private int siSo;
-    private long maGV;
-    private long maCH;
-    private long maNH;
     private String trangThai;
+
+    @Column(name = "maKH")
+    private long maKH;
+
+    @ManyToOne
+    @JoinColumn(name = "maKH", referencedColumnName = "id", insertable = false, updatable = false)
+    private KhoaHoc khoaHoc;
+
+    @Column(name = "maGV")
+    private long maGV;
+
+    @ManyToOne
+    @JoinColumn(name = "maGV", referencedColumnName = "id", insertable = false, updatable = false)
+    private GiaoVien giaoVien;
+
+    @Column(name = "maCH")
+    private long maCH;
+
+    @ManyToOne
+    @JoinColumn(name = "maCH", referencedColumnName = "id", insertable = false, updatable = false)
+    private CaHoc caHoc;
+
+    @Column(name = "maNH")
+    private long maNH;
+
+    @ManyToOne
+    @JoinColumn(name = "maNH", referencedColumnName = "id", insertable = false, updatable = false)
+    private NgayHoc ngayHoc;
 
 }

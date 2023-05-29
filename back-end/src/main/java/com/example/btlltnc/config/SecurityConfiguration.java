@@ -44,11 +44,7 @@ public class SecurityConfiguration {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
-                .antMatchers("/auth/login")
-                .antMatchers("/users/**")
-                .antMatchers("/giaoVien/**");
-
-
+                .antMatchers("/auth/login", "/users/**", "/giaoVien/**", "/caHoc/**", "/hocVien/**");
     }
 
     @Bean

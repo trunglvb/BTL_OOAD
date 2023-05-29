@@ -25,7 +25,7 @@ public class User extends BaseModel implements UserDetails {
     private String username;
     private String password;
     private String email;
-    private String role;
+    private Boolean role;
 
 
     public void setPassword(String password) {
