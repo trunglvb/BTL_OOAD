@@ -14,5 +14,4 @@ import javax.persistence.*;
 @Setter
 public class CaHoc extends BaseModel{
     public String GioHoc;
-
 }
