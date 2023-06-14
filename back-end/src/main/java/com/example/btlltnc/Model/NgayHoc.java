@@ -14,5 +14,5 @@ import java.sql.Date;
 @Getter
 @Setter
 public class NgayHoc extends BaseModel{
-    public String ngayHoc;
+    private String ngayHoc;
 }

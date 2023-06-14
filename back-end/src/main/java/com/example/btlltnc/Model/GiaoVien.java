@@ -21,7 +21,7 @@ public class GiaoVien extends BaseModel {
     private Boolean trangthai;
 
     @Column(name = "user_id")
-    private long userId;
+    private Long userId;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
