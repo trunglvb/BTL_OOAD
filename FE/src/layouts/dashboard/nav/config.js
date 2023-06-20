@@ -12,29 +12,44 @@ const navConfig = [
     icon: icon('ic_analytics'),
   },
   {
-    title: 'user',
-    path: '/dashboard/user',
+    title: 'Giảng viên',
+    path: '/dashboard/giangVien',
     icon: icon('ic_user'),
   },
   {
-    title: 'product',
-    path: '/dashboard/products',
+    title: 'Học viên',
+    path: '/dashboard/hocvien',
+    icon: icon('ic_user'),
+  },
+  {
+    title: 'Khóa học',
+    path: '/dashboard/khoahoc',
     icon: icon('ic_cart'),
   },
   {
-    title: 'blog',
-    path: '/dashboard/blog',
+    title: 'Lớp học',
+    path: '/dashboard/lophoc',
     icon: icon('ic_blog'),
   },
   {
-    title: 'login',
-    path: '/login',
-    icon: icon('ic_lock'),
+    title: 'Ngày học',
+    path: '/dashboard/ngayhoc',
+    icon: icon('ic_blog'),
   },
   {
-    title: 'Not found',
-    path: '/404',
-    icon: icon('ic_disabled'),
+    title: 'Ca học',
+    path: '/dashboard/cahoc',
+    icon: icon('ic_blog'),
+  },
+  {
+    title: 'Ngày học',
+    path: '/dashboard/ngayhoc',
+    icon: icon('ic_blog'),
+  },
+  {
+    title: 'Kết quả',
+    path: '/dashboard/login',
+    icon: icon('ic_blog'),
   },
 ];
 
