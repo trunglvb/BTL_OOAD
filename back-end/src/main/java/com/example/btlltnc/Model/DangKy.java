@@ -16,14 +16,14 @@ public class DangKy extends BaseModel {
     private boolean dongTien;
 
     @Column(name = "maHV")
-    private long maHV;
+    private Long maHV;
 
     @ManyToOne
     @JoinColumn(name = "maHV", referencedColumnName = "id", insertable = false, updatable = false)
     private HocVien hocVien;
 
     @Column(name = "maLH")
-    private long maLH;
+    private Long maLH;
 
     @ManyToOne
     @JoinColumn(name = "maLH", referencedColumnName = "id", insertable = false, updatable = false)

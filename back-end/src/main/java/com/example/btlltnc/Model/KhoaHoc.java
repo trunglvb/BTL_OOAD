@@ -14,9 +14,9 @@ import javax.persistence.Table;
 @Getter
 @Setter
 public class KhoaHoc extends BaseModel {
-    public String tenKH;
-    public int soBuoi;
-    public long hocPhi;
-    public String moTa;
-    public Boolean trangThai;
+    private String tenKH;
+    private int soBuoi;
+    private Long hocPhi;
+    private String moTa;
+    private Boolean trangThai;
 }

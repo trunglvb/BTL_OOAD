@@ -21,28 +21,28 @@ public class LopHoc extends BaseModel {
     private String trangThai;
 
     @Column(name = "maKH")
-    private long maKH;
+    private Long maKH;
 
     @ManyToOne
     @JoinColumn(name = "maKH", referencedColumnName = "id", insertable = false, updatable = false)
     private KhoaHoc khoaHoc;
 
     @Column(name = "maGV")
-    private long maGV;
+    private Long maGV;
 
     @ManyToOne
     @JoinColumn(name = "maGV", referencedColumnName = "id", insertable = false, updatable = false)
     private GiaoVien giaoVien;
 
     @Column(name = "maCH")
-    private long maCH;
+    private Long maCH;
 
     @ManyToOne
     @JoinColumn(name = "maCH", referencedColumnName = "id", insertable = false, updatable = false)
     private CaHoc caHoc;
 
     @Column(name = "maNH")
-    private long maNH;
+    private Long maNH;
 
     @ManyToOne
     @JoinColumn(name = "maNH", referencedColumnName = "id", insertable = false, updatable = false)
