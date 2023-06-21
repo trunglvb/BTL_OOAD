@@ -26,11 +26,4 @@ public class HocVien extends BaseModel {
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
     private User user;
-
-    @Column(name = "khoaHoc_id")
-    private Long KHId;
-
-    @ManyToOne
-    @JoinColumn(name = "khoaHoc_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private KhoaHoc khoaHoc;
 }
