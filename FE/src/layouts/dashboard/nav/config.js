@@ -18,37 +18,27 @@ const navConfig = [
   },
   {
     title: 'Học viên',
-    path: '/dashboard/hocvien',
+    path: '/dashboard/hocVien',
     icon: icon('ic_user'),
   },
   {
     title: 'Khóa học',
-    path: '/dashboard/khoahoc',
+    path: '/dashboard/khoaHoc',
     icon: icon('ic_cart'),
   },
   {
     title: 'Lớp học',
-    path: '/dashboard/lophoc',
+    path: '/dashboard/lopHoc',
     icon: icon('ic_blog'),
   },
   {
     title: 'Ngày học',
-    path: '/dashboard/ngayhoc',
+    path: '/dashboard/ngayHoc',
     icon: icon('ic_blog'),
   },
   {
     title: 'Ca học',
     path: '/dashboard/cahoc',
-    icon: icon('ic_blog'),
-  },
-  {
-    title: 'Ngày học',
-    path: '/dashboard/ngayhoc',
-    icon: icon('ic_blog'),
-  },
-  {
-    title: 'Kết quả',
-    path: '/dashboard/login',
     icon: icon('ic_blog'),
   },
 ];

@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 // @mui
 import {
   Card,
@@ -13,6 +13,7 @@ import {
   Popover,
   Checkbox,
   TableRow,
+  TextField,
   MenuItem,
   TableBody,
   TableCell,
@@ -22,7 +23,10 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
 // components
+import { toast } from 'react-toastify';
+import { id } from 'date-fns/locale';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
@@ -30,62 +34,41 @@ import Scrollbar from '../components/scrollbar';
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // mock
 import USERLIST from '../_mock/user';
+import http from '../utils/http';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Tên', alignRight: false },
-  { id: 'company', label: 'Ngày Sinh', alignRight: false },
-  { id: 'role', label: 'Giới tính', alignRight: false },
-  { id: 'isVerified', label: 'SĐT', alignRight: false },
-  { id: 'status', label: 'Trạng thái', alignRight: false },
+  { id: 'tenGV', label: 'Tên', alignRight: false },
+  { id: 'ngaySinhGV', label: 'Ngày Sinh', alignRight: false },
+  { id: 'gioiTinhGV', label: 'Giới tính', alignRight: false },
+  { id: 'sdtGV', label: 'SĐT', alignRight: false },
+  { id: 'trangthai', label: 'Trạng thái', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
-
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function applySortFilter(array, comparator, query) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
-  }
-  return stabilizedThis.map((el) => el[0]);
-}
-
 export default function GiangVienPage() {
   const [open, setOpen] = useState(null);
-
   const [page, setPage] = useState(0);
-
   const [order, setOrder] = useState('asc');
-
-  const [selected, setSelected] = useState([]);
-
   const [orderBy, setOrderBy] = useState('name');
-
-  const [filterName, setFilterName] = useState('');
-
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [userInfo, setUserInfo] = useState({
+    name: '',
+    date: '',
+    sex: false,
+    phone: '',
+    status: false,
+    id: 0,
+  });
+  const [editUser, setEditUser] = useState({
+    name: '',
+    date: '',
+    sex: false,
+    phone: '',
+    status: false,
+    id: 0,
+  });
 
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
@@ -95,38 +78,14 @@ export default function GiangVienPage() {
     setOpen(null);
   };
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
-
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
-    setSelected(newSelected);
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (event) => {
@@ -134,37 +93,283 @@ export default function GiangVienPage() {
     setRowsPerPage(parseInt(event.target.value, 10));
   };
 
-  const handleFilterByName = (event) => {
-    setPage(0);
-    setFilterName(event.target.value);
+  const handleApprove = () => {
+    http
+      .post('/giaoVien', {
+        tenGV: userInfo.name,
+        ngaySinhGV: userInfo.date,
+        gioiTinhGV: userInfo.sex === 'NAM',
+        sdtGV: userInfo.phone,
+        trangthai: userInfo.status === '0',
+        userId: userInfo.id,
+      })
+      .then(() => {
+        toast.success('Thêm giáo viên thành công');
+        setIsOpenPanel(false);
+        setIsLoading(true);
+        http.get('/giaoVien').then((res) => {
+          setData(res.data);
+          setIsLoading(false);
+        });
+      })
+      .catch(() => {
+        toast.warn('Thêm giáo viên không thành công');
+        setIsOpenPanel(false);
+      });
+  };
+  const handleUpdate = () => {
+    http
+      .put(`/giaoVien/${idRemove}`, {
+        tenGV: editUser.name,
+        ngaySinhGV: editUser.date,
+        gioiTinhGV: editUser.sex,
+        sdtGV: editUser.phone,
+        trangthai: editUser.status === '0',
+        userId: editUser.id,
+      })
+      .then(() => {
+        toast.success('Cập nhật viên thành công');
+        setIsOpenEditPanel(false);
+        setIsLoading(true);
+        http.get('/giaoVien').then((res) => {
+          setData(res.data);
+          setIsLoading(false);
+        });
+      })
+      .catch(() => {
+        toast.warn('Cập nhật viên không thành công');
+        setIsOpenPanel(false);
+      });
   };
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
-  console.log(filteredUsers);
+  const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isOpenPanel, setIsOpenPanel] = useState(false);
+  const [isOpenEditPanel, setIsOpenEditPanel] = useState(false);
+  const [idRemove, setIdRemove] = useState(0);
 
-  const isNotFound = !filteredUsers.length && !!filterName;
+  useEffect(() => {
+    setIsLoading(true);
+    http.get('/giaoVien').then((res) => {
+      setData(res.data);
+      setIsLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    http.get(`/giaoVien/${idRemove}`).then((res) => {
+      setEditUser({
+        ...editUser,
+        name: res.data.tenGV,
+        date: res.data.ngaySinhGV,
+        phone: res.data.sdtGV,
+        status: res.data.trangthai,
+        id: res.data.user.id,
+        sex: res.data.gioiTinhGV,
+      });
+    });
+  }, [idRemove]);
 
   return (
     <>
-      <Helmet>
-        <title> User | Minimal UI </title>
-      </Helmet>
-
+      {isOpenEditPanel && (
+        <Popover
+          open={Boolean(isOpenEditPanel)}
+          anchorEl={isOpenEditPanel}
+          anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          PaperProps={{
+            sx: {
+              p: 1,
+              position: 'fixed',
+              inset: 0,
+              width: '100vw',
+              display: 'flex',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              '& .MuiMenuItem-root': {
+                px: 1,
+                typography: 'body2',
+                borderRadius: 0.75,
+              },
+            },
+          }}
+        >
+          <div className="popup-edit-wrap">
+            <Stack spacing={1.5}>
+              <TextField
+                value={editUser.name}
+                label="Tên"
+                onChange={(e) => {
+                  setEditUser({
+                    ...editUser,
+                    name: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                label="Ngày sinh"
+                value={editUser.date}
+                onChange={(e) => {
+                  setEditUser({
+                    ...editUser,
+                    date: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                label="Số điện thoại"
+                value={editUser.phone}
+                onChange={(e) => {
+                  setEditUser({
+                    ...editUser,
+                    phone: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                name="Username"
+                label="Trạng thái"
+                value={editUser.status}
+                onChange={(e) => {
+                  setEditUser({
+                    ...editUser,
+                    status: e.target.value,
+                  });
+                }}
+              />
+              <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleUpdate}>
+                Approve
+              </LoadingButton>
+              <Button
+                onClick={() => {
+                  setIsOpenEditPanel(false);
+                }}
+              >
+                Cancel
+              </Button>
+            </Stack>
+          </div>
+        </Popover>
+      )}
+      {isOpenPanel && (
+        <Popover
+          open={Boolean(isOpenPanel)}
+          anchorEl={isOpenPanel}
+          onClose={handleCloseMenu}
+          anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          PaperProps={{
+            sx: {
+              p: 1,
+              position: 'fixed',
+              inset: 0,
+              width: '100vw',
+              display: 'flex',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              '& .MuiMenuItem-root': {
+                px: 1,
+                typography: 'body2',
+                borderRadius: 0.75,
+              },
+            },
+          }}
+        >
+          <div className="popup-wrap">
+            <Stack spacing={1.5}>
+              <TextField
+                name="Username"
+                label="Tên"
+                onChange={(e) => {
+                  setUserInfo({
+                    ...userInfo,
+                    name: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                name="Username"
+                label="Ngày sinh"
+                onChange={(e) => {
+                  setUserInfo({
+                    ...userInfo,
+                    date: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                name="Username"
+                label="Giới tính"
+                onChange={(e) => {
+                  setUserInfo({
+                    ...userInfo,
+                    sex: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                name="Username"
+                label="Số điện thoại"
+                onChange={(e) => {
+                  setUserInfo({
+                    ...userInfo,
+                    phone: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                name="Username"
+                label="Trạng thái"
+                onChange={(e) => {
+                  setUserInfo({
+                    ...userInfo,
+                    status: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                name="Username"
+                label="User ID"
+                type="number"
+                onChange={(e) => {
+                  setUserInfo({
+                    ...userInfo,
+                    id: e.target.value,
+                  });
+                }}
+              />
+              <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleApprove}>
+                Approve
+              </LoadingButton>
+              <Button
+                onClick={() => {
+                  setIsOpenPanel(false);
+                }}
+              >
+                Cancel
+              </Button>
+            </Stack>
+          </div>
+        </Popover>
+      )}
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
             User
           </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
+          <Button
+            variant="contained"
+            startIcon={<Iconify icon="eva:plus-fill" />}
+            onClick={() => {
+              setIsOpenPanel(true);
+            }}
+          >
             Thêm Giảng Viên
           </Button>
         </Stack>
 
         <Card>
-          <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
-
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
@@ -172,75 +377,57 @@ export default function GiangVienPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
-                  numSelected={selected.length}
+                  rowCount={data.length}
                   onRequestSort={handleRequestSort}
-                  onSelectAllClick={handleSelectAllClick}
                 />
-                <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, role, status, company, avatarUrl, isVerified } = row;
-                    const selectedUser = selected.indexOf(name) !== -1;
-
-                    return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
+                {isLoading ? (
+                  <span>Loading</span>
+                ) : (
+                  <TableBody>
+                    {data?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => (
+                      <TableRow hover key={row.id} tabIndex={-1} role="checkbox">
                         <TableCell padding="checkbox" />
 
                         <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
+                            <Avatar alt={row.tenGV} src={`/assets/images/avatars/avatar_${index + 1}.jpg`} />
                             <Typography variant="subtitle2" noWrap>
-                              {name}
+                              {row.tenGV}
                             </Typography>
                           </Stack>
                         </TableCell>
 
-                        <TableCell align="left">{company}</TableCell>
+                        <TableCell align="left">{row.ngaySinhGV}</TableCell>
 
-                        <TableCell align="left">{role}</TableCell>
+                        <TableCell align="left">{row.gioiTinhGV === true ? 'Nam' : 'Nữ'}</TableCell>
 
-                        <TableCell align="left">{isVerified}</TableCell>
+                        <TableCell align="left">{row.sdtGV}</TableCell>
 
                         <TableCell align="left">
-                          <Label color={(status === 'banned' && 'error') || 'success'}>{sentenceCase(status)}</Label>
-                        </TableCell>
-
-                        <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
+                          <Label color={row.trangthai === true && 'success'}>
+                            {row.trangthai === true ? 'Active' : 'Off'}
+                          </Label>
+                          <IconButton
+                            style={{
+                              marginLeft: '40px',
+                            }}
+                            size="large"
+                            color="inherit"
+                            onClick={(event) => {
+                              handleOpenMenu(event);
+                              setIdRemove(row.id);
+                            }}
+                          >
                             <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
-                  )}
-                </TableBody>
-
-                {isNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography variant="h6" paragraph>
-                            Not found
-                          </Typography>
-
-                          <Typography variant="body2">
-                            No results found for &nbsp;
-                            <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Try checking for typos or using complete words.
-                          </Typography>
-                        </Paper>
-                      </TableCell>
-                    </TableRow>
+                    ))}
+                    {emptyRows > 0 && (
+                      <TableRow style={{ height: 53 * emptyRows }}>
+                        <TableCell colSpan={6} />
+                      </TableRow>
+                    )}
                   </TableBody>
                 )}
               </Table>
@@ -248,12 +435,12 @@ export default function GiangVienPage() {
           </Scrollbar>
 
           <TablePagination
+            onPageChange={handleChangePage}
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
             count={USERLIST.length}
             rowsPerPage={rowsPerPage}
             page={page}
-            onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </Card>
@@ -277,12 +464,28 @@ export default function GiangVienPage() {
           },
         }}
       >
-        <MenuItem>
+        <MenuItem
+          onClick={() => {
+            setIsOpenEditPanel(true);
+          }}
+        >
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
 
-        <MenuItem sx={{ color: 'error.main' }}>
+        <MenuItem
+          sx={{ color: 'error.main' }}
+          onClick={() => {
+            http.delete(`/giaoVien/${idRemove}`).then(() => {
+              toast.success('Xoá giảng viên thành công');
+              setIsLoading(true);
+              http.get('/giaoVien').then((res) => {
+                setData(res.data);
+                setIsLoading(false);
+              });
+            });
+          }}
+        >
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Delete
         </MenuItem>

@@ -1,0 +1,19 @@
+.MuiSvgIcon-fontSizeMedium {
+  opacity: 0;
+}
+.popup-wrap {
+ width: 400px;
+ background-color: white;
+ height: 550px;
+ border-radius: 10px;
+  margin: auto;
+  padding: 20px;
+}
+.popup-edit-wrap {
+  width: 400px;
+ background-color: white;
+ height: 400px;
+ border-radius: 10px;
+  margin: auto;
+  padding: 20px;
+}

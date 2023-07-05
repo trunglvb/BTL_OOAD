@@ -2,14 +2,14 @@ import { Helmet } from 'react-helmet-async';
 // @mui
 import { styled } from '@mui/material/styles';
 import { Container, Typography, Divider, Stack, Button } from '@mui/material';
-import { Link } from 'react-router-dom';
 // hooks
+import { Link } from 'react-router-dom';
+import RegisterForm from '../sections/auth/login/RegisterForm';
 import useResponsive from '../hooks/useResponsive';
 // components
 import Logo from '../components/logo';
 import Iconify from '../components/iconify';
 // sections
-import { LoginForm } from '../sections/auth/login';
 
 // ----------------------------------------------------------------------
 
@@ -41,8 +41,9 @@ const StyledContent = styled('div')(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const mdUp = useResponsive('up', 'md');
+
   return (
     <>
       <Helmet>
@@ -70,15 +71,15 @@ export default function LoginPage() {
         <Container maxWidth="sm">
           <StyledContent>
             <Typography variant="h4" gutterBottom>
-              Sign in
+              Sign up
             </Typography>
 
             <Typography variant="body2" sx={{ mb: 5 }}>
               Do you have an account? {''}
-              <Link to="/register">Sign up</Link>
+              <Link to="/login">Sign in</Link>
             </Typography>
 
-            <LoginForm />
+            <RegisterForm />
           </StyledContent>
         </Container>
       </StyledRoot>

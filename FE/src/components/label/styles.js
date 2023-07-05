@@ -43,10 +43,10 @@ export const StyledLabel = styled(Box)(({ theme, ownerState }) => {
         border: `1px solid ${theme.palette[ownerState.color].main}`,
       }),
       // SOFT
-      ...(softVariant && {
-        color: theme.palette[ownerState.color][isLight ? 'dark' : 'light'],
-        backgroundColor: alpha(theme.palette[ownerState.color].main, 0.16),
-      }),
+      // ...(softVariant && {
+      //   color: theme.palette[ownerState.color][isLight ? 'dark' : 'light'],
+      //   backgroundColor: alpha(theme.palette[ownerState.color].main, 0.16),
+      // }),
     }),
   };
 
