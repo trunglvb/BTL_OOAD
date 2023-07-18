@@ -7,11 +7,9 @@ import {
   Card,
   Table,
   Stack,
-  Paper,
   Avatar,
   Button,
   Popover,
-  Checkbox,
   TableRow,
   TextField,
   MenuItem,
@@ -113,7 +111,7 @@ export default function GiangVienPage() {
         });
       })
       .catch(() => {
-        toast.warn('Thêm giáo viên không thành công');
+        toast.error('Thêm giáo viên không thành công');
         setIsOpenPanel(false);
       });
   };
@@ -128,7 +126,7 @@ export default function GiangVienPage() {
         userId: editUser.id,
       })
       .then(() => {
-        toast.success('Cập nhật viên thành công');
+        toast.success('Cập nhật giáo viên thành công');
         setIsOpenEditPanel(false);
         setIsLoading(true);
         http.get('/giaoVien').then((res) => {
@@ -138,7 +136,7 @@ export default function GiangVienPage() {
       })
       .catch(() => {
         toast.warn('Cập nhật viên không thành công');
-        setIsOpenPanel(false);
+        setIsOpenEditPanel(false);
       });
   };
 
@@ -150,6 +148,7 @@ export default function GiangVienPage() {
   const [isOpenEditPanel, setIsOpenEditPanel] = useState(false);
   const [idRemove, setIdRemove] = useState(0);
 
+  // goi api tat ca giang vien
   useEffect(() => {
     setIsLoading(true);
     http.get('/giaoVien').then((res) => {
@@ -158,6 +157,7 @@ export default function GiangVienPage() {
     });
   }, []);
 
+  // goi api theo id
   useEffect(() => {
     http.get(`/giaoVien/${idRemove}`).then((res) => {
       setEditUser({
@@ -279,7 +279,6 @@ export default function GiangVienPage() {
           <div className="popup-wrap">
             <Stack spacing={1.5}>
               <TextField
-                name="Username"
                 label="Tên"
                 onChange={(e) => {
                   setUserInfo({
@@ -289,7 +288,6 @@ export default function GiangVienPage() {
                 }}
               />
               <TextField
-                name="Username"
                 label="Ngày sinh"
                 onChange={(e) => {
                   setUserInfo({
@@ -299,7 +297,6 @@ export default function GiangVienPage() {
                 }}
               />
               <TextField
-                name="Username"
                 label="Giới tính"
                 onChange={(e) => {
                   setUserInfo({
@@ -309,7 +306,6 @@ export default function GiangVienPage() {
                 }}
               />
               <TextField
-                name="Username"
                 label="Số điện thoại"
                 onChange={(e) => {
                   setUserInfo({
@@ -319,7 +315,6 @@ export default function GiangVienPage() {
                 }}
               />
               <TextField
-                name="Username"
                 label="Trạng thái"
                 onChange={(e) => {
                   setUserInfo({
@@ -329,7 +324,6 @@ export default function GiangVienPage() {
                 }}
               />
               <TextField
-                name="Username"
                 label="User ID"
                 type="number"
                 onChange={(e) => {
@@ -356,7 +350,7 @@ export default function GiangVienPage() {
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            User
+            Giảng Viên
           </Typography>
           <Button
             variant="contained"
@@ -476,14 +470,19 @@ export default function GiangVienPage() {
         <MenuItem
           sx={{ color: 'error.main' }}
           onClick={() => {
-            http.delete(`/giaoVien/${idRemove}`).then(() => {
-              toast.success('Xoá giảng viên thành công');
-              setIsLoading(true);
-              http.get('/giaoVien').then((res) => {
-                setData(res.data);
-                setIsLoading(false);
+            http
+              .delete(`/giaoVien/${idRemove}`)
+              .then(() => {
+                toast.success('Xoá giảng viên thành công');
+                setIsLoading(true);
+                http.get('/giaoVien').then((res) => {
+                  setData(res.data);
+                  setIsLoading(false);
+                });
+              })
+              .catch(() => {
+                toast.error('Xoá giảng viên không thành công');
               });
-            });
           }}
         >
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />

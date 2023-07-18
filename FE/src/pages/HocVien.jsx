@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // @mui
 import {
   Card,
@@ -21,24 +21,26 @@ import {
   IconButton,
   TableContainer,
   TablePagination,
+  TextField,
 } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
 // components
+import { toast } from 'react-toastify';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // mock
-import USERLIST from '../_mock/user';
-
+import http from '../utils/http';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Tên', alignRight: false },
-  { id: 'company', label: 'Ngày Sinh', alignRight: false },
-  { id: 'role', label: 'Giới tính', alignRight: false },
-  { id: 'isVerified', label: 'SĐT', alignRight: false },
-  { id: 'diaChi', label: 'Địa chỉ', alignRight: false },
+  { id: 'tenHV', label: 'Tên', alignRight: false },
+  { id: 'ngaySinhHV', label: 'Ngày Sinh', alignRight: false },
+  { id: 'gioiTinhHV', label: 'Giới tính', alignRight: false },
+  { id: 'diaChiHV', label: 'Địa chỉ', alignRight: false },
+  { id: 'sdtHV', label: 'SĐT', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
@@ -59,70 +61,33 @@ function getComparator(order, orderBy) {
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-function applySortFilter(array, comparator, query) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
-  }
-  return stabilizedThis.map((el) => el[0]);
-}
-
 export default function HocVienPage() {
   const [open, setOpen] = useState(null);
-
   const [page, setPage] = useState(0);
-
   const [order, setOrder] = useState('asc');
-
-  const [selected, setSelected] = useState([]);
-
-  const [orderBy, setOrderBy] = useState('name');
-
-  const [filterName, setFilterName] = useState('');
-
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
+  const [userInfo, setUserInfo] = useState({
+    name: '',
+    date: '',
+    sex: false,
+    phone: '',
+    address: '',
+    id: 0,
+  });
+  const [editUser, setEditUser] = useState({
+    name: '',
+    date: '',
+    sex: false,
+    phone: '',
+    address: '',
+    id: 0,
+  });
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
   };
 
   const handleCloseMenu = () => {
     setOpen(null);
-  };
-
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
-
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
-    setSelected(newSelected);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -134,110 +99,327 @@ export default function HocVienPage() {
     setRowsPerPage(parseInt(event.target.value, 10));
   };
 
-  const handleFilterByName = (event) => {
-    setPage(0);
-    setFilterName(event.target.value);
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - data.length) : 0;
+
+  const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isOpenPanel, setIsOpenPanel] = useState(false);
+  const [isOpenEditPanel, setIsOpenEditPanel] = useState(false);
+  const [idRemove, setIdRemove] = useState(0);
+
+  const handleApprove = () => {
+    http
+      .post('/hocVien', {
+        tenHV: userInfo.name,
+        ngaySinhHV: userInfo.date,
+        gioiTinhHV: userInfo.sex === 'NAM',
+        sdtHV: userInfo.phone,
+        diaChiHV: userInfo.address,
+        userId: userInfo.id,
+      })
+      .then(() => {
+        toast.success('Thêm học viên thành công');
+        setIsOpenPanel(false);
+        setOpen(null);
+        setIsLoading(true);
+        http.get('/hocVien').then((res) => {
+          setData(res.data);
+          setIsLoading(false);
+        });
+      })
+      .catch(() => {
+        toast.error('Thêm học viên không thành công');
+        setIsOpenPanel(false);
+        setOpen(null);
+      });
   };
-
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
-
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
-
-  const isNotFound = !filteredUsers.length && !!filterName;
-
+  const handleUpdate = () => {
+    http
+      .put(`/hocVien/${idRemove}`, {
+        tenHV: editUser.name,
+        ngaySinhHV: editUser.date,
+        gioiTinhHV: editUser.sex,
+        sdtHV: editUser.phone,
+        diaChiHV: editUser.address,
+        userId: editUser.id,
+      })
+      .then(() => {
+        toast.success('Cập nhật viên thành công');
+        setIsOpenEditPanel(false);
+        setIsLoading(true);
+        setOpen(null);
+        http.get('/hocVien').then((res) => {
+          setData(res.data);
+          setIsLoading(false);
+        });
+      })
+      .catch(() => {
+        setOpen(null);
+        toast.warn('Cập nhật viên không thành công');
+        setIsOpenEditPanel(false);
+      });
+  };
+  useEffect(() => {
+    setIsLoading(true);
+    http.get('/hocVien').then((res) => {
+      setData(res.data);
+      setIsLoading(false);
+    });
+  }, []);
+  useEffect(() => {
+    http.get(`/hocVien/${idRemove}`).then((res) => {
+      setEditUser({
+        ...editUser,
+        name: res.data.tenHV,
+        date: res.data.ngaySinhHV,
+        phone: res.data.sdtHV,
+        address: res.data.diaChiHV,
+        id: res.data.user.id,
+        sex: res.data.gioiTinhHV,
+      });
+    });
+  }, [idRemove]);
   return (
     <>
+      {isOpenEditPanel && (
+        <Popover
+          open={Boolean(isOpenEditPanel)}
+          anchorEl={isOpenEditPanel}
+          anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          PaperProps={{
+            sx: {
+              p: 1,
+              position: 'fixed',
+              inset: 0,
+              width: '100vw',
+              display: 'flex',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              '& .MuiMenuItem-root': {
+                px: 1,
+                typography: 'body2',
+                borderRadius: 0.75,
+              },
+            },
+          }}
+        >
+          <div className="popup-edit-wrap">
+            <Stack spacing={1.5}>
+              <TextField
+                value={editUser.name}
+                label="Tên"
+                onChange={(e) => {
+                  setEditUser({
+                    ...editUser,
+                    name: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                label="Ngày sinh"
+                value={editUser.date}
+                onChange={(e) => {
+                  setEditUser({
+                    ...editUser,
+                    date: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                label="Số điện thoại"
+                value={editUser.phone}
+                onChange={(e) => {
+                  setEditUser({
+                    ...editUser,
+                    phone: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                label="Địa chỉ"
+                value={editUser.address}
+                onChange={(e) => {
+                  setEditUser({
+                    ...editUser,
+                    address: e.target.value,
+                  });
+                }}
+              />
+              <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleUpdate}>
+                Approve
+              </LoadingButton>
+              <Button
+                onClick={() => {
+                  setIsOpenEditPanel(false);
+                }}
+              >
+                Cancel
+              </Button>
+            </Stack>
+          </div>
+        </Popover>
+      )}
       <Helmet>
         <title> User | Minimal UI </title>
       </Helmet>
-
+      {isOpenPanel && (
+        <Popover
+          open={Boolean(isOpenPanel)}
+          anchorEl={isOpenPanel}
+          onClose={handleCloseMenu}
+          anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          PaperProps={{
+            sx: {
+              p: 1,
+              position: 'fixed',
+              inset: 0,
+              width: '100vw',
+              display: 'flex',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              '& .MuiMenuItem-root': {
+                px: 1,
+                typography: 'body2',
+                borderRadius: 0.75,
+              },
+            },
+          }}
+        >
+          <div className="popup-wrap">
+            <Stack spacing={1.5}>
+              <TextField
+                label="Tên"
+                onChange={(e) => {
+                  setUserInfo({
+                    ...userInfo,
+                    name: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                label="Ngày sinh"
+                onChange={(e) => {
+                  setUserInfo({
+                    ...userInfo,
+                    date: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                label="Giới tính"
+                onChange={(e) => {
+                  setUserInfo({
+                    ...userInfo,
+                    sex: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                label="Số điện thoại"
+                onChange={(e) => {
+                  setUserInfo({
+                    ...userInfo,
+                    phone: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                label="Địa chỉ"
+                onChange={(e) => {
+                  setUserInfo({
+                    ...userInfo,
+                    address: e.target.value,
+                  });
+                }}
+              />
+              <TextField
+                label="User ID"
+                type="number"
+                onChange={(e) => {
+                  setUserInfo({
+                    ...userInfo,
+                    id: e.target.value,
+                  });
+                }}
+              />
+              <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleApprove}>
+                Approve
+              </LoadingButton>
+              <Button
+                onClick={() => {
+                  setIsOpenPanel(false);
+                }}
+              >
+                Cancel
+              </Button>
+            </Stack>
+          </div>
+        </Popover>
+      )}
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            User
+            Học Viên
           </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
+          <Button
+            variant="contained"
+            startIcon={<Iconify icon="eva:plus-fill" />}
+            onClick={() => {
+              setIsOpenPanel(true);
+            }}
+          >
             Thêm Học Viên
           </Button>
         </Stack>
 
         <Card>
-          <UserListToolbar filterName={filterName} onFilterName={handleFilterByName} />
-
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
-                <UserListHead
-                  order={order}
-                  orderBy={orderBy}
-                  headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
-                  numSelected={selected.length}
-                  onRequestSort={handleRequestSort}
-                  onSelectAllClick={handleSelectAllClick}
-                />
-                <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, role, status, company, avatarUrl, isVerified, diaChi } = row;
-                    const selectedUser = selected.indexOf(name) !== -1;
-
-                    return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
+                <UserListHead order={order} headLabel={TABLE_HEAD} rowCount={data.length} />
+                {isLoading ? (
+                  <span>Loading</span>
+                ) : (
+                  <TableBody>
+                    {data?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => (
+                      <TableRow hover key={row.id} tabIndex={-1} role="checkbox">
                         <TableCell padding="checkbox" />
 
                         <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
+                            <Avatar alt={row.tenHV} src={`/assets/images/avatars/avatar_${index + 1}.jpg`} />
                             <Typography variant="subtitle2" noWrap>
-                              {name}
+                              {row.tenHV}
                             </Typography>
                           </Stack>
                         </TableCell>
+                        <TableCell align="left">{row.ngaySinhHV}</TableCell>
+                        <TableCell align="left">{row.gioiTinhHV === true ? 'Nam' : 'Nữ'}</TableCell>
+                        <TableCell align="left">{row.diaChiHV}</TableCell>
 
-                        <TableCell align="left">{company}</TableCell>
-
-                        <TableCell align="left">{role}</TableCell>
-
-                        <TableCell align="left">{isVerified}</TableCell>
-
-                        <TableCell align="left">{diaChi}</TableCell>
-
-                        <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
+                        <TableCell align="left">
+                          {row.sdtHV}
+                          <IconButton
+                            style={{
+                              marginLeft: '40px',
+                            }}
+                            size="large"
+                            color="inherit"
+                            onClick={(event) => {
+                              handleOpenMenu(event);
+                              setIdRemove(row.id);
+                            }}
+                          >
                             <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
-                  )}
-                </TableBody>
-
-                {isNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography variant="h6" paragraph>
-                            Not found
-                          </Typography>
-
-                          <Typography variant="body2">
-                            No results found for &nbsp;
-                            <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Try checking for typos or using complete words.
-                          </Typography>
-                        </Paper>
-                      </TableCell>
-                    </TableRow>
+                    ))}
+                    {emptyRows > 0 && (
+                      <TableRow style={{ height: 53 * emptyRows }}>
+                        <TableCell colSpan={6} />
+                      </TableRow>
+                    )}
                   </TableBody>
                 )}
               </Table>
@@ -247,7 +429,7 @@ export default function HocVienPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={data.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -274,12 +456,28 @@ export default function HocVienPage() {
           },
         }}
       >
-        <MenuItem>
+        <MenuItem
+          onClick={() => {
+            setIsOpenEditPanel(true);
+          }}
+        >
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
 
-        <MenuItem sx={{ color: 'error.main' }}>
+        <MenuItem
+          sx={{ color: 'error.main' }}
+          onClick={() => {
+            http.delete(`/hocVien/${idRemove}`).then(() => {
+              toast.success('Xoá học viên thành công');
+              setIsLoading(true);
+              http.get('/hocVien').then((res) => {
+                setData(res.data);
+                setIsLoading(false);
+              });
+            });
+          }}
+        >
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Delete
         </MenuItem>

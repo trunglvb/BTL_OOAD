@@ -43,8 +43,8 @@ export default function Router() {
         { path: '/dashboard/hocVien', element: <HocVienPage /> },
         { path: '/dashboard/khoaHoc', element: <KhoaHocPage /> },
         { path: '/dashboard/lopHoc', element: <LopHocPage /> },
-        { path: '/dashboard/products', element: <ProductsPage /> },
-        { path: '/dashboard/blog', element: <BlogPage /> },
+        { path: '/dashboard/caHoc', element: <ProductsPage /> },
+        { path: '/dashboard/ngayHoc', element: <BlogPage /> },
       ],
     },
     {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // @mui
 import { Link, Stack, IconButton, InputAdornment, TextField, Checkbox } from '@mui/material';
@@ -8,19 +8,25 @@ import { toast } from 'react-toastify';
 import { useSelector, useDispatch } from 'react-redux';
 import Iconify from '../../../components/iconify';
 import http from '../../../utils/http';
-import { setAuthenticated } from '../../../redux/reducer/authenticatedReducer';
+import { setAuthenticated, setUser } from '../../../redux/reducer/authenticatedReducer';
 
 // ----------------------------------------------------------------------
 
 export default function LoginForm() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const isAuthenticated = useSelector((state) => state.authReducer.isAuthenticated);
-  console.log(isAuthenticated);
+  const { user } = useSelector((state) => state.authReducer);
 
   const [showPassword, setShowPassword] = useState(false);
   const [userName, setUserName] = useState('');
   const [passWord, setPassWord] = useState('');
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    http.get('/users').then((res) => {
+      setUsers(res.data);
+    });
+  }, []);
   const handleClickLogin = () => {
     http
       .post('/auth/login', {
@@ -28,8 +34,20 @@ export default function LoginForm() {
         password: passWord,
       })
       .then((res) => {
+        const findUser = users.find((user) => user.username === userName);
         toast.success('Đăng nhập thành công');
+
+        // cap nhat thong tin vao redux
         dispatch(setAuthenticated(true));
+        dispatch(
+          setUser({
+            ...user,
+            userName: findUser.username,
+            password: passWord,
+            email: findUser.email,
+            role: findUser.role,
+          })
+        );
       })
       .then(() => {
         navigate('/dashboard/app');

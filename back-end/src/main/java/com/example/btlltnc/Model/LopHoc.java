@@ -47,12 +47,4 @@ public class LopHoc extends BaseModel {
     @ManyToOne
     @JoinColumn(name = "maNH", referencedColumnName = "id", insertable = false, updatable = false)
     private NgayHoc ngayHoc;
-
-    @Column(name = "maHV")
-    private Long maHV;
-
-    @ManyToOne
-    @JoinColumn(name = "maHV", referencedColumnName = "id", insertable = false, updatable = false)
-    private HocVien hocVien;
-
 }

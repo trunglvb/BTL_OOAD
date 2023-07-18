@@ -1,5 +1,3 @@
-// ----------------------------------------------------------------------
-
 const account = {
   displayName: 'Admin',
   email: 'demo@minimals.cc',

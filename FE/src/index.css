@@ -17,3 +17,19 @@
   margin: auto;
   padding: 20px;
 }
+.popup-edit-wrap-kh {
+    width: 400px;
+ background-color: white;
+ height: 500px;
+ border-radius: 10px;
+  margin: auto;
+  padding: 20px;
+}
+.popup-wrap-lh {
+      width: 400px;
+ background-color: white;
+ height: 750px;
+ border-radius: 10px;
+  margin: auto;
+  padding: 20px;
+}
