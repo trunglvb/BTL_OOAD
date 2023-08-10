@@ -29,7 +29,6 @@ import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // mock
-import USERLIST from '../_mock/user';
 import http from '../utils/http';
 
 // ----------------------------------------------------------------------
@@ -460,7 +459,7 @@ export default function LopHocPage() {
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
-                <UserListHead headLabel={TABLE_HEAD} rowCount={USERLIST.length} />
+                <UserListHead headLabel={TABLE_HEAD} rowCount={data.length} />
                 {isLoading ? (
                   <span>Loading</span>
                 ) : (
@@ -503,7 +502,7 @@ export default function LopHocPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={data.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}

@@ -42,6 +42,7 @@ export default function LoginForm() {
         dispatch(
           setUser({
             ...user,
+            id: findUser.id,
             userName: findUser.username,
             password: passWord,
             email: findUser.email,

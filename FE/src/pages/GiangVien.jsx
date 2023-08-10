@@ -1,7 +1,4 @@
-import { Helmet } from 'react-helmet-async';
-import { filter } from 'lodash';
-import { sentenceCase } from 'change-case';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 // @mui
 import {
   Card,
@@ -24,14 +21,12 @@ import {
 import { LoadingButton } from '@mui/lab';
 // components
 import { toast } from 'react-toastify';
-import { id } from 'date-fns/locale';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // mock
-import USERLIST from '../_mock/user';
 import http from '../utils/http';
 
 // ----------------------------------------------------------------------
@@ -91,6 +86,7 @@ export default function GiangVienPage() {
     setRowsPerPage(parseInt(event.target.value, 10));
   };
 
+  // ham them giang vien
   const handleApprove = () => {
     http
       .post('/giaoVien', {
@@ -105,6 +101,8 @@ export default function GiangVienPage() {
         toast.success('Thêm giáo viên thành công');
         setIsOpenPanel(false);
         setIsLoading(true);
+
+        // khi thanh cong thi goi laji api giang vien
         http.get('/giaoVien').then((res) => {
           setData(res.data);
           setIsLoading(false);
@@ -115,6 +113,8 @@ export default function GiangVienPage() {
         setIsOpenPanel(false);
       });
   };
+
+  // ham cap nhat giang vien
   const handleUpdate = () => {
     http
       .put(`/giaoVien/${idRemove}`, {
@@ -140,15 +140,13 @@ export default function GiangVienPage() {
       });
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
-
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpenPanel, setIsOpenPanel] = useState(false);
   const [isOpenEditPanel, setIsOpenEditPanel] = useState(false);
   const [idRemove, setIdRemove] = useState(0);
 
-  // goi api tat ca giang vien
+  // goi api tat ca giang vien khi vao app
   useEffect(() => {
     setIsLoading(true);
     http.get('/giaoVien').then((res) => {
@@ -417,11 +415,6 @@ export default function GiangVienPage() {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {emptyRows > 0 && (
-                      <TableRow style={{ height: 53 * emptyRows }}>
-                        <TableCell colSpan={6} />
-                      </TableRow>
-                    )}
                   </TableBody>
                 )}
               </Table>
@@ -432,7 +425,7 @@ export default function GiangVienPage() {
             onPageChange={handleChangePage}
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={data.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onRowsPerPageChange={handleChangeRowsPerPage}

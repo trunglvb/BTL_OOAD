@@ -32,7 +32,6 @@ import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // mock
-import USERLIST from '../_mock/user';
 import http from '../utils/http';
 
 // ----------------------------------------------------------------------
@@ -140,9 +139,6 @@ export default function KhoaHocPage() {
         setOpen(null);
       });
   };
-
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
-
   useEffect(() => {
     setIsLoading(true);
     http.get('/khoaHoc').then((res) => {
@@ -363,7 +359,7 @@ export default function KhoaHocPage() {
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
-                <UserListHead headLabel={TABLE_HEAD} rowCount={USERLIST.length} />
+                <UserListHead headLabel={TABLE_HEAD} rowCount={data.length} />
                 {isLoading ? (
                   <span>Loading</span>
                 ) : (
@@ -408,11 +404,6 @@ export default function KhoaHocPage() {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {emptyRows > 0 && (
-                      <TableRow style={{ height: 53 * emptyRows }}>
-                        <TableCell colSpan={6} />
-                      </TableRow>
-                    )}
                   </TableBody>
                 )}
               </Table>
@@ -422,7 +413,7 @@ export default function KhoaHocPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={data.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}

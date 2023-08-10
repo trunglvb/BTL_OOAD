@@ -33,3 +33,11 @@
   margin: auto;
   padding: 20px;
 }
+.popup-edit-wrap-1 {
+        width: 600px;
+        gap: 20px;
+ background-color: white;
+ border-radius: 10px;
+  margin: auto;
+  padding: 20px;
+}
